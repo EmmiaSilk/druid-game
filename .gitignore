@@ -1,3 +1,7 @@
-/target
-/excluded
+/target/
+/excluded/
 *.code-workspace
+**/*.rs.bk
+bin/
+pkg/
+wasm-pack.log
