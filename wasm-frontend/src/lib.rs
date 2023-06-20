@@ -13,7 +13,12 @@ extern {
     fn alert(s: &str);
 }
 
-// A macro to provide `println!(..)`-style syntax for `console.log` logging.
+#[wasm_bindgen(module="/www/module.js")]
+extern {
+    fn drawFrame(x:u32, y:u32, width:u32, height: u32, buffer: ());
+}
+
+/// A macro to provide `println!(..)`-style syntax for `console.log` logging.
 macro_rules! log {
     ( $( $t:tt )* ) => {
         web_sys::console::log_1(&format!( $( $t )* ).into())
@@ -22,6 +27,12 @@ macro_rules! log {
 
 #[wasm_bindgen]
 pub fn run() {
+    combat();
+    // say("Hello!");
+    drawFrame(0, 0, 16,16, ());
+}
+
+fn combat() {
     let mut hero_alice = Combatant::new("Alice".to_string());
     hero_alice.give_weapon(Weapon::new("Longsword".to_string(), 70, 8));
     let mut villain_vim = Combatant::new("Vim".to_string());
