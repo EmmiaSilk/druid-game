@@ -18,7 +18,7 @@ wasm-pack build wasm-frontend --out-dir 'pkg'
 
 ### Testing in Headless Browsers
 ```
-wasm-pack test wasm-frontend --out-dir 'pkg' --headless --firefox
+wasm-pack test --headless --firefox wasm-frontend
 ```
 
 ### Running
