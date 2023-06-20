@@ -20,6 +20,7 @@ wasm-pack build wasm-frontend --out-dir 'pkg'
 ```
 wasm-pack test --headless --firefox wasm-frontend
 ```
+Replace `--firefox` with `--chrome` if testing for the Chrome browser.
 
 ### Running
 Build the front end, then run
