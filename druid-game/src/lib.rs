@@ -7,9 +7,9 @@
 #![warn(missing_docs)]
 use std::error::Error;
 use combatant::Combatant;
-use render::RenderContext;
+use render::{RenderContext, Bitmap};
 use io::AssetLoader;
-use vfc::Vfc;
+use vfc::{Vfc, SCREEN_HEIGHT, SCREEN_WIDTH};
 use weapon::Weapon;
 use battle::{AttackResult, calculate_damage};
 
@@ -38,6 +38,13 @@ pub async fn run(services: ServiceContainer) -> Result<(), Box<dyn Error>> {
     // Load
     let bitmap = services.asset_loader.load_bitmap("/asset/example.png").await?;
     // Draw to the canvas
+    services.render_context.draw(&bitmap, 0, 0)?;
+
+    let mut vfc = build_vfc();
+    vfc.render_frame();
+    let fb = &mut vfc.framebuffer;
+
+    let bitmap = Bitmap::from_framebuffer(SCREEN_WIDTH, SCREEN_HEIGHT, fb);
     services.render_context.draw(&bitmap, 0, 0)?;
 
     Ok(())
@@ -93,7 +100,8 @@ fn damage_step(attack_result: &AttackResult, attacker: &mut Combatant, defender:
     }
 }
 
-fn build_vfc() -> Vfc {
+/// Construct a vfc with a predetermined state.
+pub fn build_vfc() -> Vfc {
     use vfc::*;
 
     let mut vfc = Vfc::new();
@@ -101,7 +109,7 @@ fn build_vfc() -> Vfc {
     // A subpalette has a size of 8, so I will be grouping my colors 
     // in sets of 8.
     let initial_palette_array = [
-        Rgb::new(0x00, 0x11, 0x11), // Black (Background)
+        Rgb::new(0x00, 0x11, 0x99), // Black (Background)
         Rgb::new(0x00, 0x11, 0x11), // Black
         Rgb::new(0xee, 0xee, 0xdd), // White
         Rgb::default(), // Placeholder
@@ -113,7 +121,7 @@ fn build_vfc() -> Vfc {
     // Assemble an array of a known length.
     let mut true_palette_array = [Rgb::default(); NUM_PALETTE_ENTRIES];
     for (i, color) in initial_palette_array.into_iter().enumerate() {
-        if i < true_palette_array.len() {
+        if i >= true_palette_array.len() {
             break;
         }
         true_palette_array[i] = color;
@@ -122,6 +130,11 @@ fn build_vfc() -> Vfc {
     vfc.palette = Palette::new(true_palette_array);
 
     // vfc.tileset = generate_tileset();
+
+    vfc.bg_layers[0].tiles[0] = TileIndex(0);
+    vfc.bg_layers[0].hidden = false;
+
+    vfc.background_color = PaletteIndex(0);
 
     vfc
 }

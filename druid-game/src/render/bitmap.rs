@@ -18,6 +18,12 @@ impl Bitmap {
         Self { width, height, colors }
     }
 
+    /// Constructs a bitmap from the given framebuffer and resolution.
+    pub fn from_framebuffer(width: usize, height: usize, buffer: &[Rgb]) -> Self {
+        let colors = buffer.to_vec();
+        Self{ width, height, colors }
+    }
+
     /// Returns the width of the bitmap, in pixels
     pub fn width(&self) -> usize {
         self.width
