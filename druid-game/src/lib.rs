@@ -1,8 +1,15 @@
 //! This library contains the meat of the code for the druid game. 
+//! 
+//! # Usage
+//! Define the services laid out in [`ServiceContainer`], then execute the 
+//! [`run`] function.
 
 #![warn(missing_docs)]
 use std::error::Error;
 use combatant::Combatant;
+use render::RenderContext;
+use io::AssetLoader;
+use vfc::Vfc;
 use weapon::Weapon;
 use battle::{AttackResult, calculate_damage};
 
@@ -11,9 +18,34 @@ use crate::combatant::HealthStatus;
 pub mod combatant;
 pub mod battle;
 pub mod weapon;
+pub mod render;
+pub mod io;
+
+/// A selecton of services used to run the game, particularly in the 
+/// [`run`] function. 
+/// 
+/// Each service should be implemented by whichever front-end uses the 
+/// library.
+pub struct ServiceContainer {
+    /// Render context
+    pub render_context: Box<dyn RenderContext>,
+    /// Asset loader
+    pub asset_loader: Box<dyn AssetLoader>,
+}
 
 /// The starting point for the game.
-pub fn run() -> Result<(), Box<dyn Error>> {
+pub async fn run(services: ServiceContainer) -> Result<(), Box<dyn Error>> {
+    // Load
+    let bitmap = services.asset_loader.load_bitmap("/asset/example.png").await?;
+    // Draw to the canvas
+    services.render_context.draw(&bitmap, 0, 0)?;
+
+    Ok(())
+}
+
+/// A combat routine for testing purposes.
+pub fn combat_example() -> Result<(), Box<dyn Error>> {
+    // TODO: Use a logger somehow
     let mut hero_alice = Combatant::new("Alice".to_string());
     hero_alice.give_weapon(Weapon::new("Longsword".to_string(), 70, 8));
     let mut villain_vim = Combatant::new("Vim".to_string());
@@ -59,4 +91,37 @@ fn damage_step(attack_result: &AttackResult, attacker: &mut Combatant, defender:
             println!("{defender} is defeated!");
         }
     }
+}
+
+fn build_vfc() -> Vfc {
+    use vfc::*;
+
+    let mut vfc = Vfc::new();
+
+    // A subpalette has a size of 8, so I will be grouping my colors 
+    // in sets of 8.
+    let initial_palette_array = [
+        Rgb::new(0x00, 0x11, 0x11), // Black (Background)
+        Rgb::new(0x00, 0x11, 0x11), // Black
+        Rgb::new(0xee, 0xee, 0xdd), // White
+        Rgb::default(), // Placeholder
+        Rgb::default(), // Placeholder
+        Rgb::default(), // Placeholder
+        Rgb::default(), // Placeholder
+        Rgb::default(), // Placeholder
+    ];
+    // Assemble an array of a known length.
+    let mut true_palette_array = [Rgb::default(); NUM_PALETTE_ENTRIES];
+    for (i, color) in initial_palette_array.into_iter().enumerate() {
+        if i < true_palette_array.len() {
+            break;
+        }
+        true_palette_array[i] = color;
+    }
+
+    vfc.palette = Palette::new(true_palette_array);
+
+    // vfc.tileset = generate_tileset();
+
+    vfc
 }

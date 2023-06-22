@@ -3,5 +3,5 @@
 members = [
     "druid-game",
     "wasm-frontend",
-    "vfc"
+    "vfc",
 ]

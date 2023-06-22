@@ -1,22 +1,14 @@
 use wasm_bindgen::prelude::*;
-use loading::BitmapJS;
-
-use vfc::Vfc;
-use web_sys::{CanvasRenderingContext2d, ImageData};
 
 mod utils;
 mod loading;
 mod macros;
+mod render_context;
 
-#[wasm_bindgen]
-extern {
-    fn alert(s: &str);
-}
+use render_context::WebRenderContext;
 
-#[wasm_bindgen(module="/www/module.js")]
-extern {
-    fn image_data_from_bitmap(ctx: &CanvasRenderingContext2d, bitmap: BitmapJS) -> ImageData;
-}
+use crate::loading::WebAssetLoader;
+
 
 #[wasm_bindgen]
 pub async fn run() -> Result<(), JsError> {
@@ -25,58 +17,19 @@ pub async fn run() -> Result<(), JsError> {
     // Activate panic hook
     console_error_panic_hook::set_once();
 
-    // Build frame renderer
-    let mut vfc = build_vfc();
-    vfc.render_frame();
-    // TODO: Use the render result
-    
-    let bitmap = loading::grab_image("/asset/example.png").await;
-    let bitmap = match bitmap {
-        Ok(bitmap) => bitmap,
-        Err(error) => return Err(JsError::new(&format!("Error loading image: {},", error))),
-    }; 
-    let ctx = match loading::get_render_context("canvas") {
-        Ok(ctx) => ctx,
+    let render_context = match WebRenderContext::with_id("canvas") {
         Err(error) => return Err(JsError::new(&format!("Error obtaining canvas context: {}", error))),
+        Ok(context) => context,
     };
-    let image_data = image_data_from_bitmap(&ctx, bitmap.to_js_friendly());
-    let result = ctx.put_image_data(&image_data, 0.0, 0.0);
-    if result.is_err() {
-        panic!("Could not render the provided bitmap to the canvas context!");
-    }
+
+    let asset_loader = WebAssetLoader::new();
+
+    let services = druid_game::ServiceContainer {
+        render_context: Box::new(render_context), 
+        asset_loader: Box::new(asset_loader),
+    };
+
+    let _ = druid_game::run(services).await;
 
     Ok(())
-}
-
-fn build_vfc() -> Vfc {
-    use vfc::*;
-
-    let mut vfc = Vfc::new();
-
-    // A subpalette has a size of 8, so I will be grouping my colors 
-    // in sets of 8.
-    let initial_palette_array = [
-        Rgb::new(0x00, 0x11, 0x11), // Black (Background)
-        Rgb::new(0x00, 0x11, 0x11), // Black
-        Rgb::new(0xee, 0xee, 0xdd), // White
-        Rgb::default(), // Placeholder
-        Rgb::default(), // Placeholder
-        Rgb::default(), // Placeholder
-        Rgb::default(), // Placeholder
-        Rgb::default(), // Placeholder
-    ];
-    // Assemble an array of a known length.
-    let mut true_palette_array = [Rgb::default(); NUM_PALETTE_ENTRIES];
-    for (i, color) in initial_palette_array.into_iter().enumerate() {
-        if i < true_palette_array.len() {
-            break;
-        }
-        true_palette_array[i] = color;
-    }
-
-    vfc.palette = Palette::new(true_palette_array);
-
-    // vfc.tileset = generate_tileset();
-
-    vfc
 }
