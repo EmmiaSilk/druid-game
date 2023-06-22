@@ -1,12 +1,12 @@
-mod utils;
-
-use web_sys::console;
 use wasm_bindgen::prelude::*;
+use loading::BitmapJS;
 
-use druid_game::combatant::Combatant;
-use druid_game::weapon::Weapon;
-use druid_game::battle;
-use druid_game::battle::AttackResult;
+use vfc::Vfc;
+use web_sys::{CanvasRenderingContext2d, ImageData};
+
+mod utils;
+mod loading;
+mod macros;
 
 #[wasm_bindgen]
 extern {
@@ -15,66 +15,70 @@ extern {
 
 #[wasm_bindgen(module="/www/module.js")]
 extern {
-    fn drawFrame(x:u32, y:u32, width:u32, height: u32, buffer: ());
-}
-
-/// A macro to provide `println!(..)`-style syntax for `console.log` logging.
-macro_rules! log {
-    ( $( $t:tt )* ) => {
-        web_sys::console::log_1(&format!( $( $t )* ).into())
-    }
+    fn image_data_from_bitmap(ctx: &CanvasRenderingContext2d, bitmap: BitmapJS) -> ImageData;
 }
 
 #[wasm_bindgen]
-pub fn run() {
-    combat();
-    // say("Hello!");
-    drawFrame(0, 0, 16,16, ());
-}
+pub async fn run() {
+    log!("Entered webassembly!");
+    // Activate panic hook
+    console_error_panic_hook::set_once();
 
-fn combat() {
-    let mut hero_alice = Combatant::new("Alice".to_string());
-    hero_alice.give_weapon(Weapon::new("Longsword".to_string(), 70, 8));
-    let mut villain_vim = Combatant::new("Vim".to_string());
-    villain_vim.give_weapon(Weapon::new("Longsword".to_string(), 70, 8));
-
-    attack(&mut hero_alice, &mut villain_vim);
-    console::log_0();
-
-    attack(&mut villain_vim, &mut hero_alice);
-    console::log_0();
-
-    attack(&mut hero_alice, &mut villain_vim);
-    console::log_0();
-}
-
-fn attack(attacker: &mut Combatant, defender: &mut Combatant) {
-    log!("{0} attacks {1}", attacker, defender);
-    let dice_roll = 50;
-    let attack_result = battle::resolve_attack(dice_roll, attacker, defender);
-    match attack_result {
-        AttackResult::Miss => log!("{0} missed!", attacker),
-        AttackResult::NoWeapon => log!("{0} didn't equip a weapon!", attacker),
-        AttackResult::DirectHit => {
-            log!("It's a direct hit!");
-            damage_step(&attack_result, attacker, defender);
-        },
-        AttackResult::GlancingBlow => {
-            log!("It's a glancing blow.");
-            damage_step(&attack_result, attacker, defender);
-        },
+    // Build frame renderer
+    let mut vfc = build_vfc();
+    vfc.render_frame();
+    // TODO: Use the render result
+    
+    log!("Finding image");
+    let bitmap = loading::grab_image("/asset/example.png").await;
+    log!("Transferring image data");
+    let bitmap = match bitmap {
+        Ok(bitmap) => bitmap,
+        Err(_) => panic!("Error loading image"),
+    }; 
+    let ctx = match loading::get_render_context("canvas") {
+        Ok(ctx) => ctx,
+        Err(error) => panic!("Error obtaining canvas context: {}", error),
+    };
+    let image_data = image_data_from_bitmap(&ctx, bitmap.to_js_friendly());
+    log!("Drawing");
+    let result = ctx.put_image_data(&image_data, 0.0, 0.0);
+    if result.is_err() {
+        panic!("Could not render the provided bitmap to the canvas context!");
     }
+
+    log!("Complete");
 }
 
-fn damage_step(attack_result: &AttackResult, attacker: &mut Combatant, defender: &mut Combatant) {
-    use druid_game::combatant::HealthStatus;
+fn build_vfc() -> Vfc {
+    use vfc::*;
 
-    if let Some(damage) = battle::calculate_damage(attack_result, attacker, defender) {
-        log!("{0} takes {1} damage.", defender, damage);
-        let status = defender.health.damage(damage);
-        log!("{0} has {1} hit points remaining.", defender, defender.health.current());
-        if let HealthStatus::Defeated = status {
-            log!("{defender} is defeated!");
+    let mut vfc = Vfc::new();
+
+    // A subpalette has a size of 8, so I will be grouping my colors 
+    // in sets of 8.
+    let initial_palette_array = [
+        Rgb::new(0x00, 0x11, 0x11), // Black (Background)
+        Rgb::new(0x00, 0x11, 0x11), // Black
+        Rgb::new(0xee, 0xee, 0xdd), // White
+        Rgb::default(), // Placeholder
+        Rgb::default(), // Placeholder
+        Rgb::default(), // Placeholder
+        Rgb::default(), // Placeholder
+        Rgb::default(), // Placeholder
+    ];
+    // Assemble an array of a known length.
+    let mut true_palette_array = [Rgb::default(); NUM_PALETTE_ENTRIES];
+    for (i, color) in initial_palette_array.into_iter().enumerate() {
+        if i < true_palette_array.len() {
+            break;
         }
+        true_palette_array[i] = color;
     }
+
+    vfc.palette = Palette::new(true_palette_array);
+
+    // vfc.tileset = generate_tileset();
+
+    vfc
 }

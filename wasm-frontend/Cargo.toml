@@ -11,15 +11,32 @@ default = ["console_error_panic_hook"]
 
 [dependencies]
 druid-game = { path = "../druid-game" }
+vfc = { path = "../vfc" }
 
 wasm-bindgen = "0.2.63"
-web-sys = {version = "0.3", features = ["console"]}
+wasm-bindgen-futures = "0.4"
+js-sys = "0.3"
 
 # The `console_error_panic_hook` crate provides better debugging of panics by
 # logging them with `console.error`. This is great for development, but requires
 # all the `std::fmt` and `std::panicking` infrastructure, so isn't great for
 # code size when deploying.
 console_error_panic_hook = { version = "0.1.6", optional = true }
+
+[dependencies.web-sys]
+version = "0.3"
+features = [
+    "console", 
+    "Window", 
+    "Document",
+    "Element",
+    "HtmlImageElement", 
+    "HtmlCanvasElement",
+    "CanvasRenderingContext2d",
+    "ImageData",
+    "OffscreenCanvas", 
+    "OffscreenCanvasRenderingContext2d",
+]
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3.13"

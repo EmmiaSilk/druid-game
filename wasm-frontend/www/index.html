@@ -3,10 +3,18 @@
   <head>
     <meta charset="utf-8">
     <title>Hello wasm-pack!</title>
+    <style>
+      #canvas {
+        border: 1px solid black;
+        width: calc(192px*4);
+        height: calc(160px*4);
+        image-rendering: pixelated;
+      }
+    </style>
   </head>
   <body>
     <noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
     <script src="./bootstrap.js"></script>
-    <canvas id="canvas" width="200" height="200" style="border: 1px solid black"></canvas>
+    <canvas id="canvas" width="192" height="160" style="border: 1px solid black;"></canvas>
   </body>
 </html>
