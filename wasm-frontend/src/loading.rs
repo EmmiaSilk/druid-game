@@ -1,4 +1,3 @@
-use core::panic;
 use std::{cell::Cell, rc::Rc, future::Future, task::Poll, fmt::Display};
 
 use wasm_bindgen::prelude::*;
@@ -87,7 +86,7 @@ impl BitmapJS {
 
 #[derive(Debug)]
 pub enum LoadError {
-    ImageNotFound,
+    ImageNotFound(String),
     CanvasError(CanvasError),
 }
 impl Display for LoadError {
@@ -146,7 +145,7 @@ pub async fn grab_image(path: &str) -> Result<Bitmap, LoadError> {
     // Start loading the image.
     let image = ImageFuture::new(path).await;
     let image = match image {
-        Err(()) => return Err(LoadError::ImageNotFound),
+        Err(()) => return Err(LoadError::ImageNotFound(path.to_string())),
         Ok(image) => image,
     };
 

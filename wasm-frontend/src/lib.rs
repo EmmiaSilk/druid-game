@@ -19,8 +19,9 @@ extern {
 }
 
 #[wasm_bindgen]
-pub async fn run() {
+pub async fn run() -> Result<(), JsError> {
     log!("Entered webassembly!");
+
     // Activate panic hook
     console_error_panic_hook::set_once();
 
@@ -29,25 +30,22 @@ pub async fn run() {
     vfc.render_frame();
     // TODO: Use the render result
     
-    log!("Finding image");
     let bitmap = loading::grab_image("/asset/example.png").await;
-    log!("Transferring image data");
     let bitmap = match bitmap {
         Ok(bitmap) => bitmap,
-        Err(_) => panic!("Error loading image"),
+        Err(error) => return Err(JsError::new(&format!("Error loading image: {},", error))),
     }; 
     let ctx = match loading::get_render_context("canvas") {
         Ok(ctx) => ctx,
-        Err(error) => panic!("Error obtaining canvas context: {}", error),
+        Err(error) => return Err(JsError::new(&format!("Error obtaining canvas context: {}", error))),
     };
     let image_data = image_data_from_bitmap(&ctx, bitmap.to_js_friendly());
-    log!("Drawing");
     let result = ctx.put_image_data(&image_data, 0.0, 0.0);
     if result.is_err() {
         panic!("Could not render the provided bitmap to the canvas context!");
     }
 
-    log!("Complete");
+    Ok(())
 }
 
 fn build_vfc() -> Vfc {
