@@ -1,4 +1,4 @@
-use druid_game::ServiceContainer;
+use druid_game::app::ServiceContainer;
 use input::WebInputManager;
 use wasm_bindgen::prelude::*;
 
@@ -23,7 +23,7 @@ pub async fn run() -> Result<(), JsError> {
     let services = generate_services()?;
 
     // Run the game!
-    let result = druid_game::run(services).await;
+    let result = druid_game::app::run(services).await;
     match result {
         Ok(()) => log!("Complete!"),
         Err(error) => return Err(JsError::new(&format!("Application error: {}", error))),
@@ -45,10 +45,10 @@ fn generate_services() -> Result<ServiceContainer, JsError> {
     // Input manager
     let input_manager = WebInputManager::create();
 
-    let vfc = druid_game::build_vfc();
+    let vfc = druid_game::app::build_vfc();
 
     // Container
-    let services = druid_game::ServiceContainer {
+    let services = druid_game::app::ServiceContainer {
         render_context: Box::new(render_context), 
         asset_loader: Box::new(asset_loader),
         input_manager: Box::new(input_manager),

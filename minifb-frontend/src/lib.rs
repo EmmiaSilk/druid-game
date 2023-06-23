@@ -1,7 +1,12 @@
-use std::{error::Error, env, rc::Rc, cell::RefCell};
+use std::cell::RefCell;
+use std::rc::Rc;
+use std::env;
+use std::error::Error;
 
-use druid_game::ServiceContainer;
-use minifb::{Window, WindowOptions, Scale};
+use druid_game::app::ServiceContainer;
+use minifb::Scale;
+use minifb::WindowOptions;
+use minifb::Window;
 
 mod render_context;
 mod asset_loader;
@@ -11,7 +16,7 @@ pub async fn run() -> Result<(), Box<dyn Error>> {
     let services = generate_services()?;
 
     println!("Dir: {}", env::current_dir().unwrap().display());
-    druid_game::run(services).await?;
+    druid_game::app::run(services).await?;
     println!("Complete!");
 
     Ok(())
@@ -24,7 +29,7 @@ fn generate_services() -> Result<ServiceContainer, Box<dyn Error>> {
     let render_context = render_context::MiniFBRenderContext::create(window.clone());
     let asset_loader = asset_loader::LocalAssetLoader::create();
     let input_manager = input_manager::WindowInputManager::create(window.clone());
-    let vfc = druid_game::build_vfc();
+    let vfc = druid_game::app::build_vfc();
 
     Ok(ServiceContainer {
         render_context: Box::new(render_context),

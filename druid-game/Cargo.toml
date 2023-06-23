@@ -9,3 +9,4 @@ edition = "2021"
 vfc = {path = "../vfc"}
 async-trait = "0.1"
 game-loop = "0.10"
+rscontainer = "0.1.0"
