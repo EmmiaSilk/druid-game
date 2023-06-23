@@ -23,7 +23,7 @@ impl WebAssetLoader {
 
 #[async_trait(?Send)]
 impl AssetLoader for WebAssetLoader {
-    async fn load_bitmap(&self, path: &str) -> Result<Bitmap, LoadError> {   
+    async fn load_bitmap(&mut self, path: &str) -> Result<Bitmap, LoadError> {   
         // Start loading the image.
         let image = ImageFuture::new(path).await;
         let image = match image {

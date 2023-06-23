@@ -1,0 +1,19 @@
+[package]
+name = "minifb-frontend"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+druid-game = { path = "../druid-game" }
+vfc = { path = "../vfc" }
+minifb = "0.24"
+async-trait = "0.1"
+image = "0.24"
+tokio = { version = "0.2", features = ["full"]}
+
+[[bin]]
+name = "druid-game"
+path = "src/bin/main.rs"

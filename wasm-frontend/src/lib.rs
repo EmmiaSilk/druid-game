@@ -1,10 +1,14 @@
+use std::error::Error;
+
 use druid_game::ServiceContainer;
+use input::WebInputManager;
 use wasm_bindgen::prelude::*;
 
 mod utils;
-mod loading;
 mod macros;
+mod loading;
 mod render_context;
+mod input;
 
 use render_context::WebRenderContext;
 
@@ -18,12 +22,14 @@ pub async fn run() -> Result<(), JsError> {
     console_error_panic_hook::set_once();
     
     // Generate Services
-    let services = generate_services()?;
+    let mut services = generate_services()?;
 
     // Run the game!
-    let _ = druid_game::run(services).await;
-
-    log!("Complete!");
+    let result = druid_game::run(services).await;
+    match result {
+        Ok(()) => log!("Complete!"),
+        Err(error) => return Err(JsError::new(&format!("Application error: {}", error))),
+    }
 
     Ok(())
 }
@@ -38,10 +44,17 @@ fn generate_services() -> Result<ServiceContainer, JsError> {
     // Asset loader
     let asset_loader = WebAssetLoader::new();
 
+    // Input manager
+    let input_manager = WebInputManager::create();
+
+    let vfc = druid_game::build_vfc();
+
     // Container
     let services = druid_game::ServiceContainer {
         render_context: Box::new(render_context), 
         asset_loader: Box::new(asset_loader),
+        input_manager: Box::new(input_manager),
+        vfc: Box::new(vfc),
     };
 
     Ok(services)

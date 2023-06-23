@@ -4,6 +4,8 @@ use druid_game::render::{RenderContext, RenderErr, Bitmap};
 use wasm_bindgen::prelude::*;
 use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement, ImageData};
 
+use crate::log;
+
 #[wasm_bindgen(module="/www/module.js")]
 extern {
     fn image_data_from_bitmap(ctx: &CanvasRenderingContext2d, bitmap: BitmapJS) -> ImageData;
@@ -47,7 +49,7 @@ impl WebRenderContext {
 }
 
 impl RenderContext for WebRenderContext {
-    fn draw(&self, bitmap: &Bitmap, x: usize, y: usize) -> Result<(), RenderErr>{
+    fn draw(&mut self, bitmap: &Bitmap, x: usize, y: usize) -> Result<(), RenderErr>{
         let bitmap_js = BitmapJS::from_bitmap(bitmap);
         let image_data = image_data_from_bitmap(&self.canvas_ctx, bitmap_js);
         let result = self.canvas_ctx.put_image_data(&image_data, x as f64, y as f64);
@@ -59,7 +61,7 @@ impl RenderContext for WebRenderContext {
         Ok(())
     }
 
-    fn clear(&self, _color: &vfc::Rgb) -> Result<(), RenderErr> {
+    fn clear(&mut self, _color: &vfc::Rgb) -> Result<(), RenderErr> {
         // TODO
         Ok(())
     }

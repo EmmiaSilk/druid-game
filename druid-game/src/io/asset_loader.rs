@@ -14,7 +14,7 @@ use crate::render::Bitmap;
 pub trait AssetLoader {
     // TODO: Return more useful error types
     /// Load a bitmap from the specified path
-    async fn load_bitmap(&self, path: &str) -> Result<Bitmap, LoadError>;
+    async fn load_bitmap(&mut self, path: &str) -> Result<Bitmap, LoadError>;
 }
 
 /// A collection of possible errors that may occur during asset-loading.

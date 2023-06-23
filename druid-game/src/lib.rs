@@ -5,13 +5,15 @@
 //! [`run`] function.
 
 #![warn(missing_docs)]
-use std::error::Error;
+use std::{error::Error, fmt::Display};
 use combatant::Combatant;
+use game_loop::{GameLoop, Time};
 use render::{RenderContext, Bitmap};
 use io::AssetLoader;
 use vfc::{Vfc, SCREEN_HEIGHT, SCREEN_WIDTH};
 use weapon::Weapon;
 use battle::{AttackResult, calculate_damage};
+use input::InputManager;
 
 use crate::combatant::HealthStatus;
 
@@ -20,6 +22,7 @@ pub mod battle;
 pub mod weapon;
 pub mod render;
 pub mod io;
+pub mod input;
 
 /// A selecton of services used to run the game, particularly in the 
 /// [`run`] function. 
@@ -31,21 +34,69 @@ pub struct ServiceContainer {
     pub render_context: Box<dyn RenderContext>,
     /// Asset loader
     pub asset_loader: Box<dyn AssetLoader>,
+    /// Input manager
+    pub input_manager: Box<dyn InputManager>,
+    /// Vfc
+    pub vfc: Box<Vfc>,
 }
 
+#[derive(Debug)]
+pub struct AppError(String);
+
+impl Display for AppError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl Error for AppError {}
+
 /// The starting point for the game.
-pub async fn run(services: ServiceContainer) -> Result<(), Box<dyn Error>> {
+pub async fn run(mut services: ServiceContainer) -> Result<(), Box<dyn Error>> {
+    println!("Running!!!");
     // Load
-    let bitmap = services.asset_loader.load_bitmap("/asset/example.png").await?;
+    let result = services.asset_loader.load_bitmap("asset/example.png").await;
+    let bitmap = match result {
+        Ok(bitmap) => bitmap,
+        Err(_) => return Err(Box::new(AppError("Problem loading bitmap".into()))), // TODO: Provide a clearer error
+    };
     // Draw to the canvas
-    services.render_context.draw(&bitmap, 0, 0)?;
+    let result = services.render_context.draw(&bitmap, 0, 0);
+    if let Err(error) = result {
+        return Err(Box::new(AppError(error.to_string())));
+    }
 
-    let mut vfc = build_vfc();
-    vfc.render_frame();
-    let fb = &mut vfc.framebuffer;
+    // TODO: Game loop
+    // let mut updateClosure = |g: &mut GameLoop<&mut ServiceContainer, Time, ()>| {
+    //     // loop_fn(services);
+    // };
+    // let mut render_closure = |g: &mut GameLoop<&mut ServiceContainer, Time, ()>| {
+    //     loop_fn(g.game);
+    // };
+    game_loop::game_loop(services, 60, 0.1, 
+            |g: &mut GameLoop<ServiceContainer, Time, ()>| {
+                // loop_fn(services);
+                if g.game.input_manager.is_requesting_close() {
+                    g.exit();
+                }
+            }, 
+            |g: &mut GameLoop<ServiceContainer, Time, ()>| {
+                loop_fn(&mut g.game);
+            }
+        );
+    Ok(())
+}
 
+pub fn loop_fn(services: &mut ServiceContainer) -> Result<(), Box<AppError>>{
+    // Render to framebuffer
+    services.vfc.render_frame();
+    let fb = &services.vfc.framebuffer;
+    // Draw to screen
     let bitmap = Bitmap::from_framebuffer(SCREEN_WIDTH, SCREEN_HEIGHT, fb);
-    services.render_context.draw(&bitmap, 0, 0)?;
+    let result = services.render_context.draw(&bitmap, 0, 0);
+    if let Err(error) = result {
+        return Err(Box::new(AppError(error.to_string())));
+    }
 
     Ok(())
 }
@@ -130,9 +181,14 @@ pub fn build_vfc() -> Vfc {
     vfc.palette = Palette::new(true_palette_array);
 
     // vfc.tileset = generate_tileset();
-
-    vfc.bg_layers[0].tiles[0] = TileIndex(0);
-    vfc.bg_layers[0].hidden = false;
+    vfc.tileset.pixel_data[0][0][0] = 0b1111_1111;
+    vfc.tileset.pixel_data[0][0][1] = 0b10000000;
+    vfc.tileset.pixel_data[0][0][2] = 0b10010100;
+    vfc.tileset.pixel_data[0][0][3] = 0b10010100;
+    vfc.tileset.pixel_data[0][0][4] = 0b10000000;
+    vfc.tileset.pixel_data[0][0][5] = 0b10111110;
+    vfc.tileset.pixel_data[0][0][6] = 0b10011100;
+    vfc.tileset.pixel_data[0][0][7] = 0b1000_0000;
 
     vfc.background_color = PaletteIndex(0);
 

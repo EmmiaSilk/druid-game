@@ -2,6 +2,7 @@
 
 members = [
     "druid-game",
+    "minifb-frontend",
     "wasm-frontend",
     "vfc",
 ]

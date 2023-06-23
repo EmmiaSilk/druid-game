@@ -12,9 +12,9 @@ use super::bitmap::Bitmap;
 /// This service is used for drawing visuals to the screen. 
 pub trait RenderContext {
     /// Draw the contents of a bitmap to the screen.
-    fn draw(&self, bitmap: &Bitmap, x: usize, y: usize) -> Result<(), RenderErr>; 
+    fn draw(&mut self, bitmap: &Bitmap, x: usize, y: usize) -> Result<(), RenderErr>; 
     /// Fill the render context with the given color.
-    fn clear(&self, color: &Rgb) -> Result<(), RenderErr>;
+    fn clear(&mut self, color: &Rgb) -> Result<(), RenderErr>;
 }
 
 // TODO: Return more useful error types

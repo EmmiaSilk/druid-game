@@ -8,7 +8,4 @@ edition = "2021"
 [dependencies]
 vfc = {path = "../vfc"}
 async-trait = "0.1"
-
-[[bin]]
-name = "druid-game"
-path = "src/bin/main.rs"
+game-loop = "0.10"
