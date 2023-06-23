@@ -40,6 +40,8 @@ pub struct ServiceContainer {
     pub vfc: Box<Vfc>,
 }
 
+/// Contains information about an error that prevents functionality in the 
+/// main app process.
 #[derive(Debug)]
 pub struct AppError(String);
 

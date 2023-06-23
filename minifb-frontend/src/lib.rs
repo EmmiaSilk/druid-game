@@ -8,7 +8,7 @@ mod asset_loader;
 mod input_manager;
 
 pub async fn run() -> Result<(), Box<dyn Error>> {
-    let mut services = generate_services()?;
+    let services = generate_services()?;
 
     println!("Dir: {}", env::current_dir().unwrap().display());
     druid_game::run(services).await?;

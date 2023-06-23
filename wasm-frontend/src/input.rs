@@ -1,8 +1,5 @@
 use async_trait::async_trait;
 use druid_game::input::InputManager;
-use js_sys::Function;
-use wasm_bindgen::prelude::Closure;
-
 pub struct WebInputManager {
     requesting_close: bool,
 }
@@ -17,7 +14,7 @@ impl WebInputManager {
 impl InputManager for WebInputManager {
     fn is_requesting_close(&self) -> bool {
         // TODO: Properly handle
-        return self.requesting_close;
+        self.requesting_close
     }
 
     fn request_close(&mut self) {

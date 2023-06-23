@@ -4,8 +4,6 @@ use druid_game::render::{RenderContext, RenderErr, Bitmap};
 use wasm_bindgen::prelude::*;
 use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement, ImageData};
 
-use crate::log;
-
 #[wasm_bindgen(module="/www/module.js")]
 extern {
     fn image_data_from_bitmap(ctx: &CanvasRenderingContext2d, bitmap: BitmapJS) -> ImageData;

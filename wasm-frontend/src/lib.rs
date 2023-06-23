@@ -1,5 +1,3 @@
-use std::error::Error;
-
 use druid_game::ServiceContainer;
 use input::WebInputManager;
 use wasm_bindgen::prelude::*;
@@ -22,7 +20,7 @@ pub async fn run() -> Result<(), JsError> {
     console_error_panic_hook::set_once();
     
     // Generate Services
-    let mut services = generate_services()?;
+    let services = generate_services()?;
 
     // Run the game!
     let result = druid_game::run(services).await;
