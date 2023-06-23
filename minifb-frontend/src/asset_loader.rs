@@ -30,10 +30,10 @@ impl AssetLoader for LocalAssetLoader {
         let (width, height) = image.dimensions();
 
         let mut colors = Vec::with_capacity((width*height) as usize);
-        for (_, _, pixel) in image.enumerate_pixels() {
-            let [r, g, b, a] = pixel.0;
-            let val = u32::from_be_bytes([a, r, g, b]);
-            let color = Rgb::from_argb_u32(&val);
+        for (_x, _y, pixel) in image.enumerate_pixels() {
+            let [r, g, b, _a] = pixel.0;
+            let color = Rgb::new(r, g, b);
+
             colors.push(color);
         }
 
