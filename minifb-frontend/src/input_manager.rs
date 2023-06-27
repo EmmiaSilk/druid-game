@@ -1,7 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
 use async_trait::async_trait;
-use druid_game::input::InputManager;
+use druid_game::service::input::InputManager;
 use minifb::Window;
 use minifb::Key;
 

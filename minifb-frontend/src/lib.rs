@@ -3,7 +3,7 @@ use std::rc::Rc;
 use std::env;
 use std::error::Error;
 
-use druid_game::app::ServiceContainer;
+use druid_game::service::ServiceContainer;
 use minifb::Scale;
 use minifb::WindowOptions;
 use minifb::Window;
@@ -23,6 +23,8 @@ pub async fn run() -> Result<(), Box<dyn Error>> {
 }
 
 fn generate_services() -> Result<ServiceContainer, Box<dyn Error>> {
+    let mut services = ServiceContainer::new();
+
     // NOTE: This may or may not be a memory leak =x
     let window = Rc::new(RefCell::new(create_window()));
 
@@ -30,13 +32,13 @@ fn generate_services() -> Result<ServiceContainer, Box<dyn Error>> {
     let asset_loader = asset_loader::LocalAssetLoader::create();
     let input_manager = input_manager::WindowInputManager::create(window.clone());
     let vfc = druid_game::app::build_vfc();
+    // TODO: Insert Services!
+    services.register_render_context(Box::new(render_context))?;
+    services.register_asset_loader(Box::new(asset_loader))?;
+    services.register_input_manager(Box::new(input_manager))?;
+    services.register_vfc(Box::new(vfc))?;
 
-    Ok(ServiceContainer {
-        render_context: Box::new(render_context),
-        asset_loader: Box::new(asset_loader),
-        input_manager: Box::new(input_manager),
-        vfc: Box::new(vfc),
-    })
+    Ok(services)
 }
 
 const HEIGHT: usize = vfc::SCREEN_HEIGHT;

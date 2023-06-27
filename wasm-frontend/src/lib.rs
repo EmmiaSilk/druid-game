@@ -1,4 +1,4 @@
-use druid_game::app::ServiceContainer;
+use druid_game::service::ServiceContainer;
 use input::WebInputManager;
 use wasm_bindgen::prelude::*;
 
@@ -33,6 +33,8 @@ pub async fn run() -> Result<(), JsError> {
 }
 
 fn generate_services() -> Result<ServiceContainer, JsError> {
+    let mut services = ServiceContainer::new();
+
     // Render context
     let render_context = match WebRenderContext::with_id("canvas") {
         Err(error) => return Err(JsError::new(&format!("Error obtaining canvas context: {}", error))),
@@ -45,15 +47,13 @@ fn generate_services() -> Result<ServiceContainer, JsError> {
     // Input manager
     let input_manager = WebInputManager::create();
 
+    // VFC
     let vfc = druid_game::app::build_vfc();
 
-    // Container
-    let services = druid_game::app::ServiceContainer {
-        render_context: Box::new(render_context), 
-        asset_loader: Box::new(asset_loader),
-        input_manager: Box::new(input_manager),
-        vfc: Box::new(vfc),
-    };
+    services.register_render_context(Box::new(render_context))?;
+    services.register_asset_loader(Box::new(asset_loader))?;
+    services.register_input_manager(Box::new(input_manager))?;
+    services.register_vfc(Box::new(vfc))?;
 
     Ok(services)
 }

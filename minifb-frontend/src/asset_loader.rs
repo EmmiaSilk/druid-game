@@ -1,7 +1,10 @@
 use async_trait::async_trait;
-use druid_game::{io::{AssetLoader, LoadError}, render::Bitmap};
+use druid_game::render::Bitmap;
+use druid_game::service::asset_loader::LoadError;
+use druid_game::service::asset_loader::AssetLoader;
 use image::io::Reader;
 use vfc::Rgb;
+
 
 pub struct LocalAssetLoader {}
 

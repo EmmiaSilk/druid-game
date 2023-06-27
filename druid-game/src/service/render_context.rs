@@ -1,11 +1,9 @@
 //! Defines the [`RenderContext`] service and immediately-related subjects. 
-//! 
-//! Don't use this module directly. It is better to use its parent module, 
-//! [`render`](super).
 
-use std::{error::Error, fmt::Display};
+use std::fmt::Display;
+use std::error::Error;
 use vfc::Rgb;
-use super::bitmap::Bitmap;
+use crate::render::Bitmap;
 
 /// Specification for the `RenderContext` service. 
 /// 

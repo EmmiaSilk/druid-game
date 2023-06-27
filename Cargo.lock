@@ -180,7 +180,6 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "game-loop",
- "rscontainer",
  "vfc",
 ]
 
@@ -928,15 +927,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "567664f262709473930a4bf9e51bf2ebf3348f2e748ccc50dea20646858f8f29"
 dependencies = [
  "bitflags",
-]
-
-[[package]]
-name = "rscontainer"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b0f88159370dc9402309b94732f02139397a486a56512e1be74accb9ceeb4fbe"
-dependencies = [
- "fnv",
 ]
 
 [[package]]

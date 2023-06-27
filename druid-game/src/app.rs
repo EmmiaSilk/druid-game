@@ -1,79 +1,78 @@
+//! This module is the main entry point of the app.
+
 use std::fmt::Display;
 use std::error::Error;
-use std::collections::HashMap;
 
 use game_loop::Time;
 use game_loop::GameLoop;
 use vfc::{SCREEN_HEIGHT, SCREEN_WIDTH};
 use vfc::Vfc;
 
-use crate::input::InputManager;
-use crate::io::AssetLoader;
 use crate::render::Bitmap;
-use crate::render::RenderContext;
-
-
-
-/// A selecton of services used to run the game, particularly in the 
-/// [`run`] function. 
-/// 
-/// Each service should be implemented by whichever front-end uses the 
-/// library.
-pub struct ServiceContainer {
-    /// Render context
-    pub render_context: Box<dyn RenderContext>,
-    /// Asset loader
-    pub asset_loader: Box<dyn AssetLoader>,
-    /// Input manager
-    pub input_manager: Box<dyn InputManager>,
-    /// Vfc
-    pub vfc: Box<Vfc>,
-}
-
+use crate::service::ServiceContainer;
 
 /// The starting point for the game.
 pub async fn run(mut services: ServiceContainer) -> Result<(), Box<dyn Error>> {
     println!("Running!!!");
     // Load
-    let result = services.asset_loader.load_bitmap("asset/example.png").await;
+    let asset_loader = &mut *services.asset_loader_mut()?;
+    let result = asset_loader.load_bitmap("asset/example.png").await;
     let bitmap = match result {
         Ok(bitmap) => bitmap,
         Err(_) => return Err(Box::new(AppError("Problem loading bitmap".into()))), // TODO: Provide a clearer error
     };
     // Draw to the canvas
-    let result = services.render_context.draw(&bitmap, 0, 0);
+    let render_context = &mut *services.render_context_mut()?;
+    let result = render_context.draw(&bitmap, 0, 0);
     if let Err(error) = result {
         return Err(Box::new(AppError(error.to_string())));
     }
 
-    // TODO: Game loop
-    // let mut updateClosure = |g: &mut GameLoop<&mut ServiceContainer, Time, ()>| {
-    //     // loop_fn(services);
-    // };
-    // let mut render_closure = |g: &mut GameLoop<&mut ServiceContainer, Time, ()>| {
-    //     loop_fn(g.game);
-    // };
     game_loop::game_loop(services, 60, 0.1, 
-            |g: &mut GameLoop<ServiceContainer, Time, ()>| {
-                // loop_fn(services);
-                if g.game.input_manager.is_requesting_close() {
-                    g.exit();
-                }
-            }, 
-            |g: &mut GameLoop<ServiceContainer, Time, ()>| {
-                loop_fn(&mut g.game);
+        |g| {
+            if let Err(error) = update(g) {
+                eprintln!("App error: {}", error.to_string());
+                g.exit();
+            };
+        }, 
+        |g| {
+            if let Err(error) = render(g) {
+                eprint!("Render error: {}", error.to_string());
+                g.exit();
             }
-        );
+        });
     Ok(())
 }
 
-pub fn loop_fn(services: &mut ServiceContainer) -> Result<(), Box<AppError>>{
+/// Update the main game state. 
+pub fn update(game_loop: &mut GameLoop<ServiceContainer, Time, ()>) -> Result<(), Box<dyn Error>> {
+    let services = &mut game_loop.game;
+    let input_manager = services.input_manager_mut()?;
+    // Check for exit
+    if input_manager.is_requesting_close() {
+        game_loop.exit();
+        return Ok(());
+    }
+
+    Ok(())
+}
+
+/// Draw the game visuals to the screen. 
+pub fn render(game_loop: &mut GameLoop<ServiceContainer, Time, ()>) -> Result<(), Box<dyn Error>>{
+    let services = &mut game_loop.game;
+    
+    // Modify vfc
+    let vfc = services.vfc_mut()
+        .expect("The VFC Should have already been verified by now.");
     // Render to framebuffer
-    services.vfc.render_frame();
-    let fb = &services.vfc.framebuffer;
-    // Draw to screen
+    vfc.render_frame();
+    let fb = &vfc.framebuffer;
     let bitmap = Bitmap::from_framebuffer(SCREEN_WIDTH, SCREEN_HEIGHT, fb);
-    let result = services.render_context.draw(&bitmap, 0, 0);
+    
+    // Draw to screen
+    let render_context = services.render_context_mut()
+        .expect("The Render Context should have already been verified by now.");
+    let result = render_context.draw(&bitmap, 0, 0);
     if let Err(error) = result {
         return Err(Box::new(AppError(error.to_string())));
     }
@@ -85,7 +84,6 @@ pub fn loop_fn(services: &mut ServiceContainer) -> Result<(), Box<AppError>>{
 /// main app process.
 #[derive(Debug)]
 pub struct AppError(String);
-
 impl Display for AppError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)

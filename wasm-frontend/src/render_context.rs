@@ -1,6 +1,7 @@
 use std::fmt::Display;
 
-use druid_game::render::{RenderContext, RenderErr, Bitmap};
+use druid_game::render::Bitmap;
+use druid_game::service::render_context::{RenderContext, RenderErr};
 use wasm_bindgen::prelude::*;
 use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement, ImageData};
 

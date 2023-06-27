@@ -1,7 +1,9 @@
 use std::{cell::Cell, rc::Rc, future::Future, task::Poll};
 
 use async_trait::async_trait;
-use druid_game::{render::Bitmap, io::{AssetLoader, LoadError}};
+use druid_game::service::asset_loader::LoadError;
+use druid_game::service::asset_loader::AssetLoader;
+use druid_game::render::Bitmap;
 use wasm_bindgen::prelude::*;
 use web_sys::{ImageData, HtmlImageElement, OffscreenCanvas, OffscreenCanvasRenderingContext2d};
 use vfc::Rgb;

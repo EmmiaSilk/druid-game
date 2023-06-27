@@ -1,7 +1,4 @@
 //! Defines the [`AssetLoader`] service and imediately-related subjects.
-//! 
-//! Don't use this module directly. It is better to use its parent module, 
-//! [`render`](super).
 
 use std::{fmt::Display, error::Error};
 
