@@ -15,9 +15,7 @@ impl RenderContext for MiniFBRenderContext {
     fn draw(&mut self, bitmap: &Bitmap, _x: usize, _y: usize) -> Result<(), RenderErr> {
         let mut my_vec = Vec::with_capacity(bitmap.height() * bitmap.width());
         for color in bitmap.colors_ref() {
-            let [a, r, g, b] = color.as_argb_u32().to_be_bytes();
-            let rgba = u32::from_be_bytes([r, g, b, a]);
-            my_vec.push(rgba);
+            my_vec.push(color.as_argb_u32());
         }
 
         let mut window = self.window.borrow_mut();

@@ -93,7 +93,7 @@ pub fn build_vfc() -> Vfc {
     // A subpalette has a size of 8, so I will be grouping my colors 
     // in sets of 8.
     let initial_palette_array = [
-        Rgb::new(0x00, 0x11, 0x99), // Black (Background)
+        Rgb::new(0x55, 0xaa, 0xdd), // Black (Background)
         Rgb::new(0x00, 0x11, 0x11), // Black
         Rgb::new(0xee, 0xee, 0xdd), // White
         Rgb::default(), // Placeholder
