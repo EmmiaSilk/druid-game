@@ -85,6 +85,7 @@ impl Error for AppError {}
 
 /// Construct a vfc with a predetermined state.
 pub fn build_vfc() -> Vfc {
+    // TODO: Find a home for this function. 
     use vfc::*;
 
     let mut vfc = Vfc::new();

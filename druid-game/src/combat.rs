@@ -7,6 +7,8 @@ use crate::weapon::Weapon;
 use crate::combatant::HealthStatus;
 use crate::combatant::Combatant;
 
+// TODO: This whole crate is inherently just a proof-of-concept. Should it be removed?
+
 /// A combat routine for testing purposes.
 pub fn combat_example() -> Result<(), Box<dyn Error>> {
     // TODO: Use a logger somehow
