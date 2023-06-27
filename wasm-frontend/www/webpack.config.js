@@ -10,8 +10,10 @@ module.exports = {
   mode: "development",
   plugins: [
     new CopyPlugin({
-      patterns:
-      ['index.html', 'asset/*'],
+      patterns: [
+        'index.html', 
+        { from: '../../asset/*', to: 'asset/*' },
+      ],
     })
   ],
   experiments: {
