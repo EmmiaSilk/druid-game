@@ -16,22 +16,15 @@ pub async fn run(mut services: ServiceContainer) -> Result<(), Box<dyn Error>> {
     println!("Running!!!");
     // Load
     let asset_loader = &mut *services.asset_loader_mut()?;
-    let result = asset_loader.load_bitmap("asset/example.png").await;
-    let bitmap = match result {
-        Ok(bitmap) => bitmap,
-        Err(_) => return Err(Box::new(AppError("Problem loading bitmap".into()))), // TODO: Provide a clearer error
-    };
+    let bitmap = asset_loader.load_bitmap("asset/example.png").await?;
     // Draw to the canvas
     let render_context = &mut *services.render_context_mut()?;
-    let result = render_context.draw(&bitmap, 0, 0);
-    if let Err(error) = result {
-        return Err(Box::new(AppError(error.to_string())));
-    }
+    render_context.draw(&bitmap, 0, 0)?;
 
     game_loop::game_loop(services, 60, 0.1, 
         |g| {
             if let Err(error) = update(g) {
-                eprintln!("App error: {}", error.to_string());
+                eprintln!("Update loop error: {}", error.to_string());
                 g.exit();
             };
         }, 
@@ -62,16 +55,14 @@ pub fn render(game_loop: &mut GameLoop<ServiceContainer, Time, ()>) -> Result<()
     let services = &mut game_loop.game;
     
     // Modify vfc
-    let vfc = services.vfc_mut()
-        .expect("The VFC Should have already been verified by now.");
+    let vfc = services.vfc_mut()?;
     // Render to framebuffer
     vfc.render_frame();
     let fb = &vfc.framebuffer;
     let bitmap = Bitmap::from_framebuffer(SCREEN_WIDTH, SCREEN_HEIGHT, fb);
     
     // Draw to screen
-    let render_context = services.render_context_mut()
-        .expect("The Render Context should have already been verified by now.");
+    let render_context = services.render_context_mut()?;
     let result = render_context.draw(&bitmap, 0, 0);
     if let Err(error) = result {
         return Err(Box::new(AppError(error.to_string())));
